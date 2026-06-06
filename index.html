@@ -57,7 +57,11 @@ body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14
 .leg-sq{width:9px;height:9px;border-radius:2px;transform:rotate(45deg)}
 /* GANTT */
 .gantt-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
-.gantt-header-row{display:block;padding:8px 0 8px 200px;background:var(--bg3);border-bottom:1px solid var(--border);position:relative;height:30px}
+.gantt-header-row {display: flex;align-items: stretch;background: var(--bg3);border-bottom: 1px solid var(--border);height: 30px;position: relative;}
+.header-label-spacer {width: 200px;min-width: 200px;border-right: 1px solid var(--border);}
+.header-timeline {flex: 1;position: relative;height: 100%;}
+.month-tick-line {position: absolute;top: 0;bottom: 0;width: 1px;background: var(--border);}
+.month-tick-label {position: absolute;font-size: 10px;color: var(--text3);font-family: var(--mono);transform: translateX(-50%);top: 6px;white-space: nowrap;}
 .month-tick-label{position:absolute;font-size:10px;color:var(--text3);font-family:var(--mono);transform:translateX(-50%);top:6px}
 .month-tick-line{position:absolute;top:0;bottom:0;width:1px;background:var(--border)}
 .gantt-row{display:flex;align-items:center;border-bottom:1px solid var(--border);min-height:42px;transition:background .15s}
@@ -515,18 +519,19 @@ function renderSidebar(){
   document.getElementById('unitList').innerHTML=html;
 }
 
-function renderGanttHeader(){
-  const h=document.getElementById('ganttHeader');
-  h.style.paddingLeft='200px'; h.style.position='relative';
-  let html='';
-  for(let i=0;i<=13;i++){
-    const d=new Date(viewStart.getFullYear(),viewStart.getMonth()+i,1);
-    if(d>addDays(viewStart,viewDays)) break;
-    const p=pct(d);
-    html+=`<div class="month-tick-line" style="left:calc(200px + ${p}% * (100% - 200px) / 100)"></div>
-           <div class="month-tick-label" style="left:calc(200px + ${p}% * (100% - 200px) / 100)">${MONTHS_ES[d.getMonth()]}${d.getFullYear()!==viewStart.getFullYear()?' '+d.getFullYear():''}</div>`;
+function renderGanttHeader() {
+  const h = document.getElementById('ganttHeader');
+  let html = `<div class="header-label-spacer"></div><div class="header-timeline">`;
+  const END = addDays(viewStart, viewDays);
+  for (let i = 0; i <= 13; i++) {
+    const d = new Date(viewStart.getFullYear(), viewStart.getMonth() + i, 1);
+    if (d > END) break;
+    const p = pct(d); // valor entre 0 y 100
+    html += `<div class="month-tick-line" style="left:${p}%"></div>
+             <div class="month-tick-label" style="left:${p}%">${MONTHS_ES[d.getMonth()]}${d.getFullYear() !== viewStart.getFullYear() ? ' ' + d.getFullYear() : ''}</div>`;
   }
-  h.innerHTML=html;
+  html += `</div>`;
+  h.innerHTML = html;
 }
 
 function renderGanttBody(){
