@@ -1,1 +1,828 @@
+bash
 
+cat > /mnt/user-data/outputs/gantt_flota_MP.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan de Services — Flota Industrial | Cerámica Marcos Paz</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--bg2:#171b25;--bg3:#1e2436;--bg4:#252c3f;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#e8eaf0;--text2:#8b91a8;--text3:#555d75;--green:#22c97a;--green-bg:rgba(34,201,122,0.12);--green-border:rgba(34,201,122,0.3);--blue:#4e9eff;--blue-bg:rgba(78,158,255,0.12);--blue-border:rgba(78,158,255,0.3);--amber:#f5a623;--amber-bg:rgba(245,166,35,0.12);--red:#ff5252;--red-bg:rgba(255,82,82,0.12);--purple:#a78bfa;--mp-orange:#e87a2b;--radius:8px;--radius-lg:12px;--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5;min-height:100vh}
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100}
+.logo-box{background:var(--mp-orange);width:40px;height:40px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:15px;color:#fff;flex-shrink:0}
+.header-title h1{font-size:15px;font-weight:600}
+.header-title p{font-size:11px;color:var(--text2)}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.today-badge{background:var(--red-bg);border:1px solid rgba(255,82,82,0.25);color:var(--red);padding:4px 10px;border-radius:20px;font-size:11px;font-family:var(--mono)}
+/* TABS */
+.tabs{display:flex;gap:2px;background:var(--bg3);border-bottom:1px solid var(--border);padding:0 24px}
+.tab{padding:10px 18px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--mp-orange);border-bottom-color:var(--mp-orange)}
+/* LAYOUT */
+.main{display:grid;grid-template-columns:280px 1fr;min-height:calc(100vh - 101px)}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:16px 14px;overflow-y:auto;max-height:calc(100vh - 101px);position:sticky;top:101px}
+.content{padding:20px 24px;overflow-x:auto}
+/* SIDEBAR */
+.sidebar h3{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:8px;padding:0 4px}
+.unit-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:6px;cursor:pointer;transition:border-color .2s,background .2s}
+.unit-card:hover{border-color:var(--border2);background:var(--bg4)}
+.unit-card.active{border-color:var(--mp-orange);background:rgba(232,122,43,0.06)}
+.unit-card-header{display:flex;align-items:flex-start;gap:8px}
+.unit-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.unit-name-text{font-size:11px;font-weight:500;line-height:1.3}
+.unit-sub-text{font-size:10px;color:var(--text2);margin-top:1px}
+.unit-meta{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.tag{font-size:10px;padding:2px 7px;border-radius:4px;font-family:var(--mono)}
+.tag-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.tag-blue{background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border)}
+.unit-next{font-size:10px;color:var(--text2);margin-top:5px;padding-top:5px;border-top:1px solid var(--border)}
+.unit-next span{color:var(--green);font-family:var(--mono)}
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px}
+.stat-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.stat-value{font-size:24px;font-weight:300;color:var(--text);font-variant-numeric:tabular-nums}
+.stat-sub{font-size:10px;color:var(--text3);margin-top:2px}
+/* CONTROLS */
+.controls{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.btn{padding:6px 12px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:11px;font-family:var(--font);cursor:pointer;transition:all .15s}
+.btn:hover{background:var(--bg4);color:var(--text)}
+.btn.active{background:var(--mp-orange);color:#fff;border-color:var(--mp-orange)}
+.legend-bar{display:flex;gap:14px;font-size:11px;color:var(--text2)}
+.leg-item{display:flex;align-items:center;gap:5px}
+.leg-dot{width:11px;height:11px;border-radius:50%}
+.leg-sq{width:9px;height:9px;border-radius:2px;transform:rotate(45deg)}
+/* GANTT */
+.gantt-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.gantt-header-row{display:block;padding:8px 0 8px 200px;background:var(--bg3);border-bottom:1px solid var(--border);position:relative;height:30px}
+.month-tick-label{position:absolute;font-size:10px;color:var(--text3);font-family:var(--mono);transform:translateX(-50%);top:6px}
+.month-tick-line{position:absolute;top:0;bottom:0;width:1px;background:var(--border)}
+.gantt-row{display:flex;align-items:center;border-bottom:1px solid var(--border);min-height:42px;transition:background .15s}
+.gantt-row:last-child{border-bottom:none}
+.gantt-row:hover{background:rgba(255,255,255,.02)}
+.gantt-row.highlight{background:rgba(232,122,43,.04)}
+.row-label{width:200px;min-width:200px;padding:6px 12px;border-right:1px solid var(--border)}
+.row-label-name{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-label-sub{font-size:9px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-timeline{flex:1;position:relative;height:42px;overflow:hidden}
+.today-line{position:absolute;top:0;bottom:0;width:1.5px;background:var(--red);z-index:10;opacity:.8}
+.event-dot{position:absolute;top:50%;transform:translateY(-50%);cursor:pointer;transition:transform .15s;z-index:5;display:flex;align-items:center;justify-content:center}
+.event-dot:hover{transform:translateY(-50%) scale(1.3);z-index:20}
+.dot-motor{width:20px;height:20px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:#0a2e1a;box-shadow:0 0 0 3px var(--green-bg)}
+.dot-long{width:20px;height:20px;border-radius:3px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:#05234a;box-shadow:0 0 0 3px var(--blue-bg);transform:translateY(-50%) rotate(45deg)}
+.dot-long:hover{transform:translateY(-50%) rotate(45deg) scale(1.3)}
+.dot-modified{box-shadow:0 0 0 3px var(--amber-bg)!important;background:var(--amber)!important;color:#2e1a00!important}
+.overdue-dot{box-shadow:0 0 0 3px var(--red-bg)!important;background:var(--red)!important;color:#2e0000!important}
+/* TOOLTIP */
+.tooltip{position:fixed;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:12px 14px;font-size:11px;pointer-events:none;z-index:999;max-width:280px;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.tt-title{font-weight:600;font-size:12px;margin-bottom:6px}
+.tt-row{display:flex;justify-content:space-between;gap:14px;margin-top:3px}
+.tt-key{color:var(--text2)}
+.tt-val{color:var(--text);font-family:var(--mono);font-size:10px}
+.tt-section{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-top:8px;margin-bottom:3px;padding-top:6px;border-top:1px solid var(--border)}
+/* EDIT PANEL */
+.edit-panel{position:fixed;right:0;top:0;width:400px;height:100vh;background:var(--bg2);border-left:1px solid var(--border2);padding:20px 18px;z-index:500;transform:translateX(100%);transition:transform .25s ease;overflow-y:auto}
+.edit-panel.open{transform:translateX(0)}
+.panel-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.panel-header h2{font-size:14px;font-weight:600}
+.panel-header .subtitle{font-size:11px;color:var(--text2);margin-top:2px}
+.btn-close{background:transparent;border:1px solid var(--border2);width:28px;height:28px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.form-group{margin-bottom:13px}
+.form-label{font-size:11px;color:var(--text2);margin-bottom:4px;display:block}
+.form-input{width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:12px}
+.form-input:focus{outline:none;border-color:var(--mp-orange)}
+.form-input[readonly]{opacity:.45}
+.form-note{font-size:10px;color:var(--text3);margin-top:3px}
+.btn-primary{width:100%;padding:9px;background:var(--mp-orange);border:none;border-radius:var(--radius);color:#fff;font-size:12px;font-weight:500;font-family:var(--font);cursor:pointer;margin-top:6px;transition:opacity .15s}
+.btn-primary:hover{opacity:.85}
+.btn-danger{width:100%;padding:7px;background:transparent;border:1px solid rgba(255,82,82,.3);border-radius:var(--radius);color:var(--red);font-size:11px;font-family:var(--font);cursor:pointer;margin-top:6px;transition:background .15s}
+.btn-danger:hover{background:var(--red-bg)}
+.divider{height:1px;background:var(--border);margin:14px 0}
+.history-list{list-style:none}
+.history-item{font-size:10px;color:var(--text3);padding:3px 0;border-bottom:1px solid var(--border);font-family:var(--mono)}
+/* INSUMOS TABLE */
+.ins-section{margin-bottom:24px}
+.ins-section h3{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--text)}
+.ins-table{width:100%;border-collapse:collapse;font-size:11px}
+.ins-table th{background:var(--bg3);color:var(--text2);font-weight:500;padding:7px 10px;text-align:left;border-bottom:1px solid var(--border);font-size:10px;text-transform:uppercase;letter-spacing:.06em}
+.ins-table td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top}
+.ins-table tr:last-child td{border-bottom:none}
+.ins-table tr:hover td{background:rgba(255,255,255,.02)}
+.ins-table .editable{cursor:pointer;border-bottom:1px dashed var(--text3);display:inline-block;min-width:30px}
+.ins-table .editable:hover{border-bottom-color:var(--mp-orange);color:var(--mp-orange)}
+.ins-table input.inline-edit{background:var(--bg4);border:1px solid var(--mp-orange);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:2px 5px;width:90px}
+.unit-section-header{background:var(--bg3);padding:8px 10px;font-size:11px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:8px}
+.cat-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.qty-badge{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);padding:1px 6px;border-radius:3px;font-size:10px;font-family:var(--mono)}
+.freq-badge{background:var(--blue-bg);color:var(--blue);padding:1px 6px;border-radius:3px;font-size:10px}
+.overdue-badge{background:var(--red-bg);border:1px solid rgba(255,82,82,.25);color:var(--red);padding:2px 7px;border-radius:4px;font-size:10px;font-family:var(--mono)}
+.btn-sm{padding:5px 10px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-size:11px;font-family:var(--font);cursor:pointer;transition:all .15s}
+.btn-sm:hover{background:var(--bg4);color:var(--text)}
+/* RESUMEN */
+.resumen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.res-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
+.res-card-title{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em}
+.res-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);font-size:11px}
+.res-row:last-child{border-bottom:none}
+.res-key{color:var(--text2)}
+.res-val{color:var(--text);font-family:var(--mono);font-weight:500}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo-box">MP</div>
+  <div class="header-title">
+    <h1>Plan de Services — Flota Industrial</h1>
+    <p>Cerámica Marcos Paz · Mantenimiento Preventivo 2026–2027</p>
+  </div>
+  <div class="header-right">
+    <span class="today-badge" id="todayBadge"></span>
+    <button class="btn-sm" onclick="exportJSON()">⬇ Exportar</button>
+    <button class="btn-sm" onclick="importJSON()">⬆ Importar</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="loadJSON(event)">
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('gantt',this)">Diagrama de Gantt</div>
+  <div class="tab" onclick="showTab('insumos',this)">Aceites y Filtros por Unidad</div>
+  <div class="tab" onclick="showTab('resumen',this)">Resumen de Compra Mensual</div>
+</div>
+
+<div class="main">
+  <aside class="sidebar">
+    <h3>Filtros</h3>
+    <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px">
+      <button class="btn active" onclick="filterCat('all',this)">Toda la flota</button>
+      <button class="btn" onclick="filterCat('Topadora',this)">Topadora</button>
+      <button class="btn" onclick="filterCat('Pala',this)">Palas cargadoras</button>
+      <button class="btn" onclick="filterCat('Autoelevador',this)">Autoelevadores</button>
+      <button class="btn" onclick="filterCat('Camión',this)">Camiones</button>
+    </div>
+    <div style="height:1px;background:var(--border);margin-bottom:12px"></div>
+    <h3>Unidades</h3>
+    <div id="unitList"></div>
+  </aside>
+
+  <!-- TAB: GANTT -->
+  <main class="content" id="tab-gantt">
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="controls">
+      <span style="font-size:11px;color:var(--text2)">Vista:</span>
+      <button class="btn active" onclick="setView('year',this)">12 meses</button>
+      <button class="btn" onclick="setView('half',this)">6 meses</button>
+      <button class="btn" onclick="setView('quarter',this)">3 meses</button>
+      <div style="flex:1"></div>
+      <div class="legend-bar">
+        <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div>Service motor</div>
+        <div class="leg-item"><div class="leg-sq" style="background:var(--blue)"></div>Fluidos largos</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--amber)"></div>Modificado</div>
+        <div class="leg-item" style="gap:6px"><div style="width:2px;height:12px;background:var(--red);border-radius:1px"></div>Hoy</div>
+      </div>
+    </div>
+    <div class="gantt-wrap">
+      <div class="gantt-header-row" id="ganttHeader"></div>
+      <div class="gantt-body" id="ganttBody"></div>
+    </div>
+    <p style="font-size:10px;color:var(--text3);margin-top:8px">Clic en cualquier marcador para editar la fecha del service.</p>
+  </main>
+
+  <!-- TAB: INSUMOS -->
+  <main class="content" id="tab-insumos" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div>
+        <h2 style="font-size:15px;font-weight:600">Insumos por unidad</h2>
+        <p style="font-size:11px;color:var(--text2);margin-top:2px">Hacé clic en cualquier valor para editarlo</p>
+      </div>
+      <button class="btn-sm" onclick="saveInsumos()">💾 Guardar cambios</button>
+    </div>
+    <div id="insumosContent"></div>
+  </main>
+
+  <!-- TAB: RESUMEN -->
+  <main class="content" id="tab-resumen" style="display:none">
+    <div style="margin-bottom:16px">
+      <h2 style="font-size:15px;font-weight:600">Resumen de compra mensual</h2>
+      <p style="font-size:11px;color:var(--text2);margin-top:2px">Totales consolidados para toda la flota · Basado en el informe de insumos críticos</p>
+    </div>
+    <div id="resumenContent"></div>
+  </main>
+</div>
+
+<!-- TOOLTIP -->
+<div class="tooltip" id="tooltip"></div>
+
+<!-- EDIT PANEL -->
+<div class="edit-panel" id="editPanel">
+  <div class="panel-header">
+    <div><h2 id="epTitle">Editar service</h2><div class="subtitle" id="epSub"></div></div>
+    <button class="btn-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="form-group"><label class="form-label">Unidad</label><input class="form-input" id="epUnit" readonly></div>
+  <div class="form-group"><label class="form-label">Tipo</label><input class="form-input" id="epType" readonly></div>
+  <div class="form-group"><label class="form-label">Fecha programada original</label><input class="form-input" id="epOrigDate" readonly></div>
+  <div class="form-group">
+    <label class="form-label">Nueva fecha del service</label>
+    <input class="form-input" type="date" id="epNewDate">
+    <div class="form-note">Fecha real en que se realizó o realizará el service.</div>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Observaciones</label>
+    <textarea class="form-input" id="epNotes" rows="3" placeholder="Motivo, repuestos, técnico responsable..."></textarea>
+  </div>
+  <button class="btn-primary" onclick="saveEdit()">Guardar cambio</button>
+  <button class="btn-danger" onclick="resetEdit()">Restaurar fecha original</button>
+  <div class="divider"></div>
+  <h3 style="font-size:11px;color:var(--text2);margin-bottom:6px">Historial de cambios</h3>
+  <ul class="history-list" id="epHistory"></ul>
+</div>
+
+<script>
+const MONTHS_ES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const CAT_COLORS={Topadora:'#f59e0b',Pala:'#22c97a',Autoelevador:'#4e9eff',Camión:'#a78bfa'};
+let viewDays=365, viewStart=new Date(2026,5,6), activeFilter='all', editKey=null, currentTab='gantt';
+
+// ── UNITS ─────────────────────────────────────
+const units=[
+  {id:'top1',name:'Topadora Komatsu',sub:'D61EX / SAA6D107E-1',cat:'Topadora',lastService:'2026-05-20',type:'hours',rate:16,workDays:[1,2,3,4,5,6],svcInt:300,longInt:1000},
+  {id:'lon1',name:'Lonking 01',sub:'CDM856 / Cummins 6CTAA8.3',cat:'Pala',lastService:'2026-05-22',type:'hours',rate:16,workDays:[1,2,3,4,5,6],svcInt:300,longInt:1000},
+  {id:'lon2',name:'Lonking 02',sub:'CDM856 / Cummins 6CTAA8.3',cat:'Pala',lastService:'2026-06-15',type:'hours',rate:16,workDays:[1,2,3,4,5,6],svcInt:300,longInt:1000},
+  {id:'toy45',name:'Toyota 45',sub:'8FD45N',cat:'Autoelevador',lastService:'2026-06-29',type:'hours',rate:10,workDays:[1,2,3,4,5],svcInt:300,longInt:1000},
+  {id:'toy30',name:'Toyota 30',sub:'8HFB30',cat:'Autoelevador',lastService:'2026-05-26',type:'hours',rate:10,workDays:[1,2,3,4,5],svcInt:300,longInt:1000},
+  {id:'doo1',name:'Doosan 40-01',sub:'D40S-5',cat:'Autoelevador',lastService:'2026-05-06',type:'hours',rate:10,workDays:[1,2,3,4,5],svcInt:300,longInt:1000},
+  {id:'doo2',name:'Doosan 40-02',sub:'D40S-5',cat:'Autoelevador',lastService:'2026-04-25',type:'hours',rate:10,workDays:[1,2,3,4,5],svcInt:300,longInt:1000},
+  {id:'ax1',name:'AXOR 2831 – TATU 052',sub:'MB OM926 LA 6x4 2012',cat:'Camión',lastService:'2026-05-15',type:'km',workDays:[1,2,3,4,5,6],kmDay:{1:300,2:300,3:300,4:300,5:300,6:150},svcInt:15000,longInt:60000},
+  {id:'ax2',name:'AXOR 2831 – TATU 365',sub:'MB OM926 LA 6x4',cat:'Camión',lastService:'2026-06-01',type:'km',workDays:[1,2,3,4,5,6],kmDay:{1:300,2:300,3:300,4:300,5:300,6:150},svcInt:15000,longInt:60000},
+  {id:'atr1',name:'ATRON 1634S – NPO 265',sub:'MB OM457 LA BATEA',cat:'Camión',lastService:'2026-06-04',type:'km',workDays:[1,2,3,4,5,6],kmDay:{1:300,2:300,3:300,4:300,5:300,6:150},svcInt:15000,longInt:60000},
+  {id:'ax3',name:'AXOR 2831 – TATU 319',sub:'MB OM926 LA 6x4',cat:'Camión',lastService:'2026-06-04',type:'km',workDays:[1,2,3,4,5,6],kmDay:{1:300,2:300,3:300,4:300,5:300,6:150},svcInt:15000,longInt:60000},
+  {id:'atr2',name:'ATRON 2040S – HWC 507',sub:'MB OM926 LA BATEA',cat:'Camión',lastService:'2026-05-29',type:'km',workDays:[1,2,3,4,5,6],kmDay:{1:300,2:300,3:300,4:300,5:300,6:150},svcInt:15000,longInt:60000},
+];
+
+// ── INSUMOS POR UNIDAD ─────────────────────────
+// Datos extraídos del Informe de Insumos Críticos - Cerámica Marcos Paz
+// Aceites: litros por service / Filtros: unidades por service
+const defaultInsumos = {
+  top1: {
+    aceites:[
+      {nombre:'Aceite motor',spec:'SAE 15W-40 / API CI-4 / Komatsu EO15W40',litros:23,frecuencia:'c/300 hs'},
+      {nombre:'Aceite hidráulico (HST+hoja)',spec:'ISO VG 46 / Komatsu HO46',litros:101,frecuencia:'c/1.000 hs'},
+      {nombre:'Aceite mandos finales (x2)',spec:'SAE 30 / API GL-4 / Komatsu TO30',litros:13,frecuencia:'c/1.000 hs'},
+    ],
+    filtros:[
+      {nombre:'Filtro aceite motor',codigo:'6735-51-5140 / P550428',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro combustible primario',codigo:'600-311-4610 / P550440',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro separador agua/comb.',codigo:'6732-71-6110 / P551329',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro aire primario',codigo:'600-185-4110 / P828889',qty:1,frecuencia:'c/500 hs'},
+      {nombre:'Filtro aire seguridad',codigo:'600-185-4120 / P829333',qty:1,frecuencia:'c/1.500 hs'},
+      {nombre:'Filtro hidráulico retorno',codigo:'21W-60-41121',qty:1,frecuencia:'c/500 hs'},
+      {nombre:'Filtro transmisión / servo',codigo:'207-60-71141',qty:1,frecuencia:'c/500 hs'},
+    ]
+  },
+  lon1: {
+    aceites:[
+      {nombre:'Aceite motor',spec:'SAE 15W-40 / API CF-4 / Fleetguard',litros:20,frecuencia:'c/300 hs'},
+      {nombre:'Aceite transmisión',spec:'SAE 80W-90 / API GL-5',litros:46,frecuencia:'c/1.000 hs'},
+      {nombre:'Aceite hidráulico',spec:'ISO VG 46 / HV 46',litros:270,frecuencia:'c/1.000 hs'},
+      {nombre:'Aceite ejes (x2)',spec:'SAE 80W-90 / API GL-5',litros:56,frecuencia:'c/1.000 hs'},
+    ],
+    filtros:[
+      {nombre:'Filtro aceite motor',codigo:'Fleetguard LF9009 / Baldwin B2',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro combustible primario',codigo:'Fleetguard FF5488',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro combustible secundario',codigo:'Fleetguard FF5612',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro aire primario',codigo:'Donaldson P822768 / Fleetguard AH1144',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro aire seguridad',codigo:'Donaldson P822768 secundario',qty:1,frecuencia:'c/300 hs'},
+    ]
+  },
+  lon2: {
+    aceites:[
+      {nombre:'Aceite motor',spec:'SAE 15W-40 / API CF-4 / Fleetguard',litros:20,frecuencia:'c/300 hs'},
+      {nombre:'Aceite transmisión',spec:'SAE 80W-90 / API GL-5',litros:46,frecuencia:'c/1.000 hs'},
+      {nombre:'Aceite hidráulico',spec:'ISO VG 46 / HV 46',litros:270,frecuencia:'c/1.000 hs'},
+      {nombre:'Aceite ejes (x2)',spec:'SAE 80W-90 / API GL-5',litros:56,frecuencia:'c/1.000 hs'},
+    ],
+    filtros:[
+      {nombre:'Filtro aceite motor',codigo:'Fleetguard LF9009 / Baldwin B2',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro combustible primario',codigo:'Fleetguard FF5488',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro combustible secundario',codigo:'Fleetguard FF5612',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro aire primario',codigo:'Donaldson P822768 / Fleetguard AH1144',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro aire seguridad',codigo:'Donaldson P822768 secundario',qty:1,frecuencia:'c/300 hs'},
+    ]
+  },
+  toy45: {
+    aceites:[
+      {nombre:'Aceite motor',spec:'SAE 15W-40 / API CG-4',litros:7.8,frecuencia:'c/300 hs'},
+      {nombre:'Aceite transmisión + convertidor',spec:'ATF Dexron III',litros:15.5,frecuencia:'c/1.000 hs'},
+      {nombre:'Aceite hidráulico',spec:'ISO VG 46 / Dexron III Toyota',litros:45,frecuencia:'c/1.000 hs'},
+      {nombre:'Aceite diferencial',spec:'SAE 80W-90 / API GL-4/GL-5',litros:9.5,frecuencia:'c/1.000 hs'},
+    ],
+    filtros:[
+      {nombre:'Filtro aceite motor',codigo:'Toyota 04152-0L010',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro combustible',codigo:'Toyota 23390-0L010',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro aire',codigo:'Toyota 17801-0L020',qty:1,frecuencia:'c/300 hs'},
+    ]
+  },
+  toy30: {
+    aceites:[
+      {nombre:'Aceite motor',spec:'SAE 15W-40 / API CG-4',litros:7.9,frecuencia:'c/300 hs'},
+      {nombre:'Aceite transmisión + convertidor',spec:'ATF Dexron III',litros:15.5,frecuencia:'c/1.000 hs'},
+      {nombre:'Aceite hidráulico',spec:'ISO VG 46 / Dexron III Toyota',litros:34,frecuencia:'c/1.000 hs'},
+      {nombre:'Aceite diferencial',spec:'SAE 80W-90 / API GL-4/GL-5',litros:9.5,frecuencia:'c/1.000 hs'},
+    ],
+    filtros:[
+      {nombre:'Filtro aceite motor',codigo:'Toyota 04152-0L010 / Fram PH4967',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro combustible',codigo:'Toyota 23390-0L010',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro aire',codigo:'Toyota 17801-0L020',qty:1,frecuencia:'c/300 hs'},
+    ]
+  },
+  doo1: {
+    aceites:[
+      {nombre:'Aceite motor',spec:'SAE 15W-40 / API CF-4',litros:20.5,frecuencia:'c/300 hs'},
+      {nombre:'Aceite transmisión',spec:'ATF Dexron II/III',litros:11,frecuencia:'c/1.000 hs'},
+      {nombre:'Aceite hidráulico',spec:'ISO VG 46 / HV 46',litros:45,frecuencia:'c/1.000 hs'},
+    ],
+    filtros:[
+      {nombre:'Filtro aceite motor',codigo:'Doosan 400500-00003A / Mann W940/31',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro combustible',codigo:'Doosan 400500-00140',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro aire',codigo:'Doosan 400500-00353',qty:1,frecuencia:'c/300 hs'},
+    ]
+  },
+  doo2: {
+    aceites:[
+      {nombre:'Aceite motor',spec:'SAE 15W-40 / API CF-4',litros:20.5,frecuencia:'c/300 hs'},
+      {nombre:'Aceite transmisión',spec:'ATF Dexron II/III',litros:11,frecuencia:'c/1.000 hs'},
+      {nombre:'Aceite hidráulico',spec:'ISO VG 46 / HV 46',litros:45,frecuencia:'c/1.000 hs'},
+    ],
+    filtros:[
+      {nombre:'Filtro aceite motor',codigo:'Doosan 400500-00003A / Mann W940/31',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro combustible',codigo:'Doosan 400500-00140',qty:1,frecuencia:'c/300 hs'},
+      {nombre:'Filtro aire',codigo:'Doosan 400500-00353',qty:1,frecuencia:'c/300 hs'},
+    ]
+  },
+  ax1: {
+    aceites:[
+      {nombre:'Aceite motor',spec:'SAE 15W-40 / MB 228.3',litros:28.5,frecuencia:'c/15.000 km'},
+      {nombre:'Aceite transmisión ZF 16S',spec:'ZF TE-ML05 / SAE 50',litros:18,frecuencia:'c/60.000 km'},
+      {nombre:'Aceite ejes traseros (x2)',spec:'SAE 85W-140 / API GL-5',litros:24,frecuencia:'c/60.000 km'},
+      {nombre:'Aceite dirección hidráulica',spec:'ATF Dexron III / ISO VG 32',litros:3.5,frecuencia:'c/60.000 km'},
+    ],
+    filtros:[
+      {nombre:'Filtro aceite motor',codigo:'MB A 541 180 00 09 / Mann HU 1213x',qty:1,frecuencia:'c/15.000 km'},
+      {nombre:'Filtro combustible primario',codigo:'MB A 541 090 00 52',qty:1,frecuencia:'c/15.000 km'},
+      {nombre:'Filtro combustible secundario',codigo:'MB A 541 090 01 52',qty:1,frecuencia:'c/15.000 km'},
+      {nombre:'Filtro aire',codigo:'MB A 941 094 00 01',qty:1,frecuencia:'c/15.000 km'},
+    ]
+  },
+  ax2: {
+    aceites:[
+      {nombre:'Aceite motor',spec:'SAE 15W-40 / MB 228.3',litros:28.5,frecuencia:'c/15.000 km'},
+      {nombre:'Aceite transmisión ZF 16S',spec:'ZF TE-ML05 / SAE 50',litros:18,frecuencia:'c/60.000 km'},
+      {nombre:'Aceite ejes traseros (x2)',spec:'SAE 85W-140 / API GL-5',litros:24,frecuencia:'c/60.000 km'},
+      {nombre:'Aceite dirección hidráulica',spec:'ATF Dexron III / ISO VG 32',litros:3.5,frecuencia:'c/60.000 km'},
+    ],
+    filtros:[
+      {nombre:'Filtro aceite motor',codigo:'MB A 541 180 00 09 / Mann HU 1213x',qty:1,frecuencia:'c/15.000 km'},
+      {nombre:'Filtro combustible primario',codigo:'MB A 541 090 00 52',qty:1,frecuencia:'c/15.000 km'},
+      {nombre:'Filtro combustible secundario',codigo:'MB A 541 090 01 52',qty:1,frecuencia:'c/15.000 km'},
+      {nombre:'Filtro aire',codigo:'MB A 941 094 00 01',qty:1,frecuencia:'c/15.000 km'},
+    ]
+  },
+  atr1: {
+    aceites:[
+      {nombre:'Aceite motor',spec:'SAE 15W-40 / MB 228.3 / OM457 LA',litros:27,frecuencia:'c/15.000 km'},
+      {nombre:'Aceite transmisión ZF 16S',spec:'ZF TE-ML05 / SAE 50',litros:18,frecuencia:'c/60.000 km'},
+      {nombre:'Aceite diferencial trasero',spec:'SAE 85W-140 / API GL-5',litros:12,frecuencia:'c/60.000 km'},
+      {nombre:'Aceite dirección hidráulica',spec:'ATF Dexron III / ISO VG 32',litros:3.5,frecuencia:'c/60.000 km'},
+    ],
+    filtros:[
+      {nombre:'Filtro aceite motor',codigo:'MB A 457 180 00 09 / Mann HU 1401/2x',qty:1,frecuencia:'c/15.000 km'},
+      {nombre:'Filtro combustible primario',codigo:'MB A 541 090 00 52',qty:1,frecuencia:'c/15.000 km'},
+      {nombre:'Filtro combustible secundario',codigo:'MB A 541 090 01 52',qty:1,frecuencia:'c/15.000 km'},
+      {nombre:'Filtro aire',codigo:'MB A 941 094 00 01',qty:1,frecuencia:'c/15.000 km'},
+    ]
+  },
+  ax3: {
+    aceites:[
+      {nombre:'Aceite motor',spec:'SAE 15W-40 / MB 228.3',litros:28.5,frecuencia:'c/15.000 km'},
+      {nombre:'Aceite transmisión ZF 16S',spec:'ZF TE-ML05 / SAE 50',litros:18,frecuencia:'c/60.000 km'},
+      {nombre:'Aceite ejes traseros (x2)',spec:'SAE 85W-140 / API GL-5',litros:24,frecuencia:'c/60.000 km'},
+      {nombre:'Aceite dirección hidráulica',spec:'ATF Dexron III / ISO VG 32',litros:3.5,frecuencia:'c/60.000 km'},
+    ],
+    filtros:[
+      {nombre:'Filtro aceite motor',codigo:'MB A 541 180 00 09 / Mann HU 1213x',qty:1,frecuencia:'c/15.000 km'},
+      {nombre:'Filtro combustible primario',codigo:'MB A 541 090 00 52',qty:1,frecuencia:'c/15.000 km'},
+      {nombre:'Filtro combustible secundario',codigo:'MB A 541 090 01 52',qty:1,frecuencia:'c/15.000 km'},
+      {nombre:'Filtro aire',codigo:'MB A 941 094 00 01',qty:1,frecuencia:'c/15.000 km'},
+    ]
+  },
+  atr2: {
+    aceites:[
+      {nombre:'Aceite motor',spec:'SAE 15W-40 / MB 228.3',litros:28.5,frecuencia:'c/15.000 km'},
+      {nombre:'Aceite transmisión ZF 16S',spec:'ZF TE-ML05 / SAE 50',litros:18,frecuencia:'c/60.000 km'},
+      {nombre:'Aceite diferencial trasero',spec:'SAE 85W-140 / API GL-5',litros:12,frecuencia:'c/60.000 km'},
+      {nombre:'Aceite dirección hidráulica',spec:'ATF Dexron III / ISO VG 32',litros:3.5,frecuencia:'c/60.000 km'},
+    ],
+    filtros:[
+      {nombre:'Filtro aceite motor',codigo:'MB A 541 180 00 09 / Mann HU 1213x',qty:1,frecuencia:'c/15.000 km'},
+      {nombre:'Filtro combustible primario',codigo:'MB A 541 090 00 52',qty:1,frecuencia:'c/15.000 km'},
+      {nombre:'Filtro combustible secundario',codigo:'MB A 541 090 01 52',qty:1,frecuencia:'c/15.000 km'},
+      {nombre:'Filtro aire',codigo:'MB A 941 094 00 01',qty:1,frecuencia:'c/15.000 km'},
+    ]
+  }
+};
+
+// ── PERSISTENCE ───────────────────────────────
+let overrides = JSON.parse(localStorage.getItem('mp_gantt_v3')||'{}');
+let insumos = JSON.parse(localStorage.getItem('mp_insumos_v1')||JSON.stringify(defaultInsumos));
+function saveOverrides(){ localStorage.setItem('mp_gantt_v3', JSON.stringify(overrides)); }
+function saveInsumos(){ localStorage.setItem('mp_insumos_v1', JSON.stringify(insumos)); alert('Cambios guardados correctamente.'); }
+
+// ── DATE HELPERS ──────────────────────────────
+function parseDate(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function fmtDate(d){ return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; }
+function fmtISO(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function daysBetween(a,b){ return Math.round((b-a)/86400000); }
+
+function daysUntilUnits(unit, fromDate, target){
+  let d=new Date(fromDate), acc=0, days=0;
+  while(acc<target){ d.setDate(d.getDate()+1); days++; const dow=d.getDay(); if(!unit.workDays.includes(dow)) continue; acc+=unit.type==='hours'?unit.rate:(unit.kmDay[dow]||0); }
+  return days;
+}
+function getSchedule(unit){
+  const END=addDays(viewStart,366); const motor=[], longS=[];
+  let cur=parseDate(unit.lastService), lcur=parseDate(unit.lastService);
+  while(cur<END){ cur=addDays(cur,daysUntilUnits(unit,cur,unit.svcInt)); motor.push(new Date(cur)); }
+  while(lcur<END){ lcur=addDays(lcur,daysUntilUnits(unit,lcur,unit.longInt)); longS.push(new Date(lcur)); }
+  return{motor,longS};
+}
+function pct(d){ return Math.max(0,Math.min(100,daysBetween(viewStart,d)/viewDays*100)); }
+function getOvKey(uid,type,idx){ return `${uid}_${type}_${idx}`; }
+function getEffDate(uid,type,idx,orig){ const k=getOvKey(uid,type,idx); return overrides[k]?parseDate(overrides[k].date):orig; }
+
+// ── TAB SYSTEM ────────────────────────────────
+function showTab(name, el){
+  currentTab=name;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  ['gantt','insumos','resumen'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display=t===name?'':'none';
+  });
+  if(name==='insumos') renderInsumos();
+  if(name==='resumen') renderResumen();
+}
+
+// ── RENDER ────────────────────────────────────
+function render(){ 
+  document.getElementById('todayBadge').textContent=fmtDate(new Date());
+  renderStats(); renderSidebar(); renderGanttHeader(); renderGanttBody();
+}
+
+function renderStats(){
+  const END=addDays(viewStart,viewDays), today=new Date();
+  let totalMotor=0,totalLong=0,ovCount=0,overdueCount=0;
+  units.forEach(u=>{ const{motor,longS}=getSchedule(u);
+    motor.forEach((d,i)=>{ if(d>=viewStart&&d<=END){ totalMotor++; if(overrides[getOvKey(u.id,'motor',i)]) ovCount++; if(getEffDate(u.id,'motor',i,d)<today) overdueCount++; }});
+    longS.forEach((d,i)=>{ if(d>=viewStart&&d<=END){ totalLong++; if(overrides[getOvKey(u.id,'long',i)]) ovCount++; }});
+  });
+  document.getElementById('statsGrid').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Services motor / período</div><div class="stat-value">${totalMotor}</div><div class="stat-sub">${viewDays} días proyectados</div></div>
+    <div class="stat-card"><div class="stat-label">Cambios fluidos largos</div><div class="stat-value">${totalLong}</div><div class="stat-sub">Transmisión · ejes · hidráulico</div></div>
+    <div class="stat-card"><div class="stat-label">Fechas modificadas</div><div class="stat-value" style="color:var(--amber)">${ovCount}</div><div class="stat-sub">Adelantos o retrasos</div></div>
+    <div class="stat-card"><div class="stat-label">Services vencidos</div><div class="stat-value" style="color:${overdueCount>0?'var(--red)':'var(--text)'}">${overdueCount}</div><div class="stat-sub">${overdueCount>0?'Requieren atención':'Al día'}</div></div>`;
+}
+
+function renderSidebar(){
+  const filtered=activeFilter==='all'?units:units.filter(u=>u.cat===activeFilter);
+  const today=new Date();
+  let html='';
+  filtered.forEach(u=>{
+    const{motor}=getSchedule(u);
+    const next=motor.find(d=>getEffDate(u.id,'motor',motor.indexOf(d),d)>=today);
+    const nextEff=next?getEffDate(u.id,'motor',motor.indexOf(next),next):null;
+    const dUntil=nextEff?daysBetween(today,nextEff):null;
+    const isActive=editKey&&editKey.startsWith(u.id);
+    html+=`<div class="unit-card ${isActive?'active':''}" onclick="highlightUnit('${u.id}')">
+      <div class="unit-card-header"><div class="unit-dot" style="background:${CAT_COLORS[u.cat]}"></div>
+      <div><div class="unit-name-text">${u.name}</div><div class="unit-sub-text">${u.sub}</div></div></div>
+      <div class="unit-meta"><span class="tag tag-green">${u.cat}</span><span class="tag tag-blue">${u.type==='hours'?u.svcInt+'hs':u.svcInt/1000+'k km'}</span></div>
+      ${nextEff?`<div class="unit-next">Próx. service: <span>${fmtDate(nextEff)}</span>${dUntil!==null?' · '+dUntil+'d':''}${dUntil!==null&&dUntil<=7?' <span class="overdue-badge">¡urgente!</span>':''}</div>`:''}
+    </div>`;
+  });
+  document.getElementById('unitList').innerHTML=html;
+}
+
+function renderGanttHeader(){
+  const h=document.getElementById('ganttHeader');
+  h.style.paddingLeft='200px'; h.style.position='relative';
+  let html='';
+  for(let i=0;i<=13;i++){
+    const d=new Date(viewStart.getFullYear(),viewStart.getMonth()+i,1);
+    if(d>addDays(viewStart,viewDays)) break;
+    const p=pct(d);
+    html+=`<div class="month-tick-line" style="left:calc(200px + ${p}% * (100% - 200px) / 100)"></div>
+           <div class="month-tick-label" style="left:calc(200px + ${p}% * (100% - 200px) / 100)">${MONTHS_ES[d.getMonth()]}${d.getFullYear()!==viewStart.getFullYear()?' '+d.getFullYear():''}</div>`;
+  }
+  h.innerHTML=html;
+}
+
+function renderGanttBody(){
+  const filtered=activeFilter==='all'?units:units.filter(u=>u.cat===activeFilter);
+  const END=addDays(viewStart,viewDays), today=new Date();
+  let html='';
+  filtered.forEach(u=>{
+    const{motor,longS}=getSchedule(u);
+    const isHL=editKey&&editKey.startsWith(u.id);
+    html+=`<div class="gantt-row ${isHL?'highlight':''}">
+      <div class="row-label"><div class="row-label-name">${u.name}</div><div class="row-label-sub">${u.sub}</div></div>
+      <div class="row-timeline">
+        <div class="today-line" style="left:${pct(today)}%"></div>`;
+    for(let i=0;i<=13;i++){ const d=new Date(viewStart.getFullYear(),viewStart.getMonth()+i,1); if(d>END) break; html+=`<div style="position:absolute;top:0;bottom:0;left:${pct(d)}%;width:1px;background:var(--border);pointer-events:none"></div>`; }
+    motor.forEach((orig,i)=>{
+      if(orig<viewStart||orig>END) return;
+      const k=getOvKey(u.id,'motor',i), eff=overrides[k]?parseDate(overrides[k].date):orig;
+      const mod=!!overrides[k], ov=eff<today;
+      const cls=`dot-motor${mod?' dot-modified':''}${ov&&!mod?' overdue-dot':''}`;
+      html+=`<div class="event-dot" style="left:calc(${pct(eff)}% - 10px)"
+        data-k="${k}" data-uid="${u.id}" data-type="motor" data-idx="${i}"
+        data-orig="${fmtISO(orig)}" data-eff="${fmtISO(eff)}" data-name="${u.name}" data-sub="${u.sub}"
+        onclick="openEdit('${k}','${u.id}','motor',${i},'${fmtISO(orig)}','${fmtISO(eff)}','${u.name}','${u.sub}')"
+        onmouseenter="showTip(event,this)" onmouseleave="hideTip()"><div class="${cls}">S</div></div>`;
+    });
+    longS.forEach((orig,i)=>{
+      if(orig<viewStart||orig>END) return;
+      const k=getOvKey(u.id,'long',i), eff=overrides[k]?parseDate(overrides[k].date):orig;
+      const mod=!!overrides[k];
+      html+=`<div class="event-dot" style="left:calc(${pct(eff)}% - 10px)"
+        data-k="${k}" data-uid="${u.id}" data-type="long" data-idx="${i}"
+        data-orig="${fmtISO(orig)}" data-eff="${fmtISO(eff)}" data-name="${u.name}" data-sub="${u.sub}"
+        onclick="openEdit('${k}','${u.id}','long',${i},'${fmtISO(orig)}','${fmtISO(eff)}','${u.name}','${u.sub}')"
+        onmouseenter="showTip(event,this)" onmouseleave="hideTip()"><div class="dot-long${mod?' dot-modified':''}">F</div></div>`;
+    });
+    html+=`</div></div>`;
+  });
+  document.getElementById('ganttBody').innerHTML=html;
+}
+
+// ── INSUMOS ───────────────────────────────────
+function renderInsumos(){
+  const filtered=activeFilter==='all'?units:units.filter(u=>u.cat===activeFilter);
+  let html='';
+  filtered.forEach(u=>{
+    const ins=insumos[u.id]; if(!ins) return;
+    html+=`<div class="ins-section">
+      <div class="unit-section-header"><div class="cat-dot" style="background:${CAT_COLORS[u.cat]}"></div>${u.name} <span style="font-size:10px;color:var(--text3);font-weight:400">· ${u.sub}</span></div>
+      <table class="ins-table" style="margin-bottom:0">
+        <thead><tr><th style="width:30%">Aceite / Fluido</th><th style="width:35%">Especificación</th><th style="width:12%">Litros/service</th><th style="width:13%">Frecuencia</th><th style="width:10%"></th></tr></thead>
+        <tbody>`;
+    ins.aceites.forEach((a,ai)=>{
+      html+=`<tr>
+        <td><span class="editable" onclick="editCell(this,'${u.id}','aceites',${ai},'nombre')">${a.nombre}</span></td>
+        <td><span class="editable" onclick="editCell(this,'${u.id}','aceites',${ai},'spec')" style="font-family:var(--mono);font-size:10px">${a.spec}</span></td>
+        <td style="text-align:center"><span class="qty-badge editable" onclick="editCell(this,'${u.id}','aceites',${ai},'litros')">${a.litros} L</span></td>
+        <td><span class="freq-badge editable" onclick="editCell(this,'${u.id}','aceites',${ai},'frecuencia')">${a.frecuencia}</span></td>
+        <td><button class="btn-sm" style="padding:2px 7px;font-size:10px;color:var(--red)" onclick="deleteRow('${u.id}','aceites',${ai})">✕</button></td>
+      </tr>`;
+    });
+    html+=`</tbody></table>
+      <div style="margin:6px 0 12px 0;display:flex;gap:6px">
+        <button class="btn-sm" onclick="addRow('${u.id}','aceites')" style="font-size:10px">+ Añadir aceite</button>
+      </div>
+      <table class="ins-table" style="margin-bottom:0">
+        <thead><tr><th style="width:30%">Filtro</th><th style="width:40%">Código / Referencia</th><th style="width:10%">Qty</th><th style="width:15%">Frecuencia</th><th style="width:5%"></th></tr></thead>
+        <tbody>`;
+    ins.filtros.forEach((f,fi)=>{
+      html+=`<tr>
+        <td><span class="editable" onclick="editCell(this,'${u.id}','filtros',${fi},'nombre')">${f.nombre}</span></td>
+        <td><span class="editable" onclick="editCell(this,'${u.id}','filtros',${fi},'codigo')" style="font-family:var(--mono);font-size:10px">${f.codigo}</span></td>
+        <td style="text-align:center"><span class="qty-badge editable" onclick="editCell(this,'${u.id}','filtros',${fi},'qty')">${f.qty}</span></td>
+        <td><span class="freq-badge editable" onclick="editCell(this,'${u.id}','filtros',${fi},'frecuencia')">${f.frecuencia}</span></td>
+        <td><button class="btn-sm" style="padding:2px 7px;font-size:10px;color:var(--red)" onclick="deleteRow('${u.id}','filtros',${fi})">✕</button></td>
+      </tr>`;
+    });
+    html+=`</tbody></table>
+      <div style="margin:6px 0 20px 0;display:flex;gap:6px">
+        <button class="btn-sm" onclick="addRow('${u.id}','filtros')" style="font-size:10px">+ Añadir filtro</button>
+      </div>
+    </div>`;
+  });
+  document.getElementById('insumosContent').innerHTML=html;
+}
+
+function editCell(span, uid, section, idx, field){
+  if(span.querySelector('input')) return;
+  const val=insumos[uid][section][idx][field];
+  const inp=document.createElement('input');
+  inp.className='inline-edit'; inp.value=val; inp.type=(field==='litros'||field==='qty')?'number':'text';
+  span.innerHTML=''; span.appendChild(inp); inp.focus(); inp.select();
+  function commit(){ 
+    let v=inp.value.trim(); if(!v){ inp.focus(); return; }
+    if(field==='litros') v=parseFloat(v)||val;
+    if(field==='qty') v=parseInt(v)||val;
+    insumos[uid][section][idx][field]=v;
+    renderInsumos();
+  }
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e=>{ if(e.key==='Enter') commit(); if(e.key==='Escape'){ renderInsumos(); } });
+}
+
+function addRow(uid, section){
+  if(section==='aceites') insumos[uid].aceites.push({nombre:'Nuevo fluido',spec:'Especificación',litros:0,frecuencia:'c/300 hs'});
+  else insumos[uid].filtros.push({nombre:'Nuevo filtro',codigo:'Código',qty:1,frecuencia:'c/300 hs'});
+  renderInsumos();
+}
+
+function deleteRow(uid, section, idx){
+  if(!confirm('¿Eliminar esta fila?')) return;
+  insumos[uid][section].splice(idx,1);
+  renderInsumos();
+}
+
+// ── RESUMEN ───────────────────────────────────
+function renderResumen(){
+  // Totales de aceites por tipo
+  const aceiteMap={}, filtroMap={};
+  units.forEach(u=>{
+    const ins=insumos[u.id]; if(!ins) return;
+    ins.aceites.forEach(a=>{
+      const key=a.spec.split('/')[0].trim();
+      aceiteMap[key]=(aceiteMap[key]||0)+a.litros;
+    });
+    ins.filtros.forEach(f=>{
+      const key=f.nombre;
+      filtroMap[key]=(filtroMap[key]||0)+f.qty;
+    });
+  });
+
+  // Resumen del informe (tabla de compra mensual)
+  const compraData=[
+    {tipo:'Aceite motor 15W40',reposicion:'1 tambor 205L / mes',marca:'YPF / Shell / Total',litros:247},
+    {tipo:'Aceite hidráulico ISO VG 46',reposicion:'1 tambor 205L / cada 2 meses',marca:'YPF / Shell / Total',litros:574},
+    {tipo:'Aceite 80W-90 / 85W-140',reposicion:'1 tambor 205L / cada 3 meses',marca:'YPF / Shell / Total',litros:189},
+    {tipo:'ATF Dexron III',reposicion:'Bidón 20L / mensual',marca:'YPF / Shell / Total',litros:null},
+    {tipo:'Grasa EP-2',reposicion:'1 tambor / cada 3 meses',marca:'YPF / Shell / Total',litros:null},
+    {tipo:'Líquido refrigerante',reposicion:'1 tambor 205L / cada 3 meses',marca:'Kriox',litros:240},
+  ];
+
+  let html=`
+  <div class="resumen-grid">
+    <div class="res-card">
+      <div class="res-card-title">Aceites por tipo (litros totales sistema)</div>`;
+  Object.entries(aceiteMap).slice(0,8).forEach(([k,v])=>{
+    html+=`<div class="res-row"><span class="res-key">${k}</span><span class="res-val">${parseFloat(v).toFixed(1)} L</span></div>`;
+  });
+  html+=`</div>
+    <div class="res-card">
+      <div class="res-card-title">Filtros totales por tipo</div>`;
+  Object.entries(filtroMap).slice(0,8).forEach(([k,v])=>{
+    html+=`<div class="res-row"><span class="res-key" style="font-size:10px">${k}</span><span class="res-val">${v} u.</span></div>`;
+  });
+  html+=`</div>
+    <div class="res-card">
+      <div class="res-card-title">Total mensual estimado</div>
+      <div class="res-row"><span class="res-key">Aceite motor</span><span class="res-val">247 L</span></div>
+      <div class="res-row"><span class="res-key">Aceite hidráulico</span><span class="res-val">574 L</span></div>
+      <div class="res-row"><span class="res-key">Trans. + ejes</span><span class="res-val">189 L</span></div>
+      <div class="res-row"><span class="res-key">Dirección</span><span class="res-val">10.5 L</span></div>
+      <div class="res-row"><span class="res-key">Reposición (7%)</span><span class="res-val">113 L</span></div>
+      <div class="res-row"><span class="res-key">Refrigerante</span><span class="res-val">240 L</span></div>
+      <div class="res-row" style="border-top:1px solid var(--border2);margin-top:4px;padding-top:6px">
+        <span class="res-key" style="font-weight:600;color:var(--text)">TOTAL</span>
+        <span class="res-val" style="font-size:16px;color:var(--mp-orange)">1.557 L</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ins-section">
+    <h3>Pedido de compra mensual recomendado</h3>
+    <table class="ins-table">
+      <thead><tr><th>Tipo de fluido</th><th>Reposición recomendada</th><th>Litros/mes</th><th>Marca recomendada</th></tr></thead>
+      <tbody>`;
+  compraData.forEach(r=>{
+    html+=`<tr><td>${r.tipo}</td><td>${r.reposicion}</td><td style="text-align:center"><span class="qty-badge">${r.litros?r.litros+' L':'—'}</span></td><td style="color:var(--text2)">${r.marca}</td></tr>`;
+  });
+  html+=`</tbody></table>
+    <div style="margin-top:10px;padding:10px 14px;background:var(--amber-bg);border:1px solid rgba(245,166,35,.25);border-radius:var(--radius);font-size:11px;color:var(--amber)">
+      ⚠ Stock de seguridad recomendado: +20% sobre el consumo mensual estimado. Capacidad de almacenamiento mínima: ~1.900 litros.
+    </div>
+  </div>`;
+
+  document.getElementById('resumenContent').innerHTML=html;
+}
+
+// ── TOOLTIP ───────────────────────────────────
+function showTip(e,el){
+  const k=el.dataset.k, ovr=overrides[k];
+  const uid=el.dataset.uid, type=el.dataset.type, idx=parseInt(el.dataset.idx);
+  const tLabel=type==='motor'?'Service de motor':'Cambio fluidos largos';
+  const orig=parseDate(el.dataset.orig), eff=parseDate(el.dataset.eff);
+  const diff=daysBetween(orig,eff);
+  const ins=insumos[uid];
+  let html=`<div class="tt-title">${el.dataset.name}</div>
+    <div class="tt-row"><span class="tt-key">Tipo</span><span class="tt-val" style="color:${type==='motor'?'var(--green)':'var(--blue)'}">${tLabel}</span></div>
+    <div class="tt-row"><span class="tt-key">Fecha original</span><span class="tt-val">${fmtDate(orig)}</span></div>`;
+  if(ovr){ html+=`<div class="tt-row"><span class="tt-key">Fecha efectiva</span><span class="tt-val" style="color:var(--amber)">${fmtDate(eff)}</span></div>
+    <div class="tt-row"><span class="tt-key">Variación</span><span class="tt-val" style="color:var(--amber)">${diff>0?'+'+diff:diff} días</span></div>`;
+    if(ovr.notes) html+=`<div style="font-size:10px;color:var(--amber);margin-top:5px">📝 ${ovr.notes}</div>`;
+  }
+  if(ins && type==='motor'){
+    html+=`<div class="tt-section">Insumos de este service</div>`;
+    ins.aceites.filter(a=>a.frecuencia.includes('300')||a.frecuencia.includes('15.000')).forEach(a=>{
+      html+=`<div class="tt-row"><span class="tt-key">${a.nombre}</span><span class="tt-val">${a.litros} L</span></div>`;
+    });
+    ins.filtros.filter(f=>f.frecuencia.includes('300')||f.frecuencia.includes('15.000')).forEach(f=>{
+      html+=`<div class="tt-row"><span class="tt-key">${f.nombre}</span><span class="tt-val">${f.qty} u · ${f.codigo.split('/')[0].trim()}</span></div>`;
+    });
+  }
+  html+=`<div style="font-size:10px;color:var(--text3);margin-top:6px">Clic para editar</div>`;
+  const tip=document.getElementById('tooltip');
+  tip.innerHTML=html; tip.style.display='block';
+  moveTip(e);
+}
+function moveTip(e){ const t=document.getElementById('tooltip'); t.style.left=Math.min(e.clientX+14,window.innerWidth-300)+'px'; t.style.top=Math.max(e.clientY-10,10)+'px'; }
+function hideTip(){ document.getElementById('tooltip').style.display='none'; }
+document.addEventListener('mousemove',e=>{ if(document.getElementById('tooltip').style.display==='block') moveTip(e); });
+
+// ── EDIT PANEL ────────────────────────────────
+function openEdit(key,uid,type,idx,orig,eff,name,sub){
+  editKey=key;
+  document.getElementById('epTitle').textContent=type==='motor'?'Service de motor':'Cambio fluidos largos';
+  document.getElementById('epSub').textContent=name+' · '+sub;
+  document.getElementById('epUnit').value=name;
+  document.getElementById('epType').value=type==='motor'?'Service de motor (aceite + filtros)':'Cambio fluidos largos';
+  document.getElementById('epOrigDate').value=fmtDate(parseDate(orig));
+  document.getElementById('epNewDate').value=eff;
+  document.getElementById('epNotes').value=overrides[key]?.notes||'';
+  const hist=overrides[key]?.history||[];
+  document.getElementById('epHistory').innerHTML=hist.length?hist.map(h=>`<li class="history-item">${h}</li>`).join(''):'<li class="history-item" style="color:var(--text3)">Sin modificaciones previas</li>';
+  document.getElementById('editPanel').classList.add('open');
+  renderSidebar();
+}
+function closePanel(){ document.getElementById('editPanel').classList.remove('open'); editKey=null; renderSidebar(); }
+function saveEdit(){
+  if(!editKey) return;
+  const nd=document.getElementById('epNewDate').value, notes=document.getElementById('epNotes').value.trim();
+  if(!nd) return alert('Ingresá una fecha válida');
+  const prev=overrides[editKey];
+  const hist=prev?.history?[...prev.history]:[];
+  const ts=new Date().toLocaleString('es-AR');
+  if(prev?.date&&prev.date!==nd) hist.unshift(`${ts} · anterior: ${fmtDate(parseDate(prev.date))}`);
+  else if(!prev?.date) hist.unshift(`${ts} · primera modificación`);
+  overrides[editKey]={date:nd,notes,history:hist.slice(0,10)};
+  saveOverrides(); render();
+  document.getElementById('epHistory').innerHTML=overrides[editKey].history.map(h=>`<li class="history-item">${h}</li>`).join('');
+}
+function resetEdit(){
+  if(!editKey||!confirm('¿Restaurar fecha original?')) return;
+  delete overrides[editKey]; saveOverrides(); closePanel(); render();
+}
+
+// ── FILTER / VIEW ─────────────────────────────
+function filterCat(cat,btn){
+  activeFilter=cat;
+  document.querySelectorAll('.sidebar .btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+  if(currentTab==='insumos') renderInsumos();
+  if(currentTab==='resumen') renderResumen();
+}
+function setView(v,btn){
+  document.querySelectorAll('.controls .btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  viewDays=v==='year'?365:v==='half'?183:92;
+  render();
+}
+function highlightUnit(uid){ editKey=uid+'_hl'; renderSidebar(); renderGanttBody(); }
+
+// ── EXPORT / IMPORT ───────────────────────────
+function exportJSON(){
+  const data={version:3,exported:new Date().toISOString(),overrides,insumos};
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download=`flota_MP_${new Date().toISOString().slice(0,10)}.json`; a.click();
+}
+function importJSON(){ document.getElementById('importFile').click(); }
+function loadJSON(e){
+  const r=new FileReader(); r.onload=ev=>{
+    try{ const d=JSON.parse(ev.target.result);
+      if(d.overrides) overrides=d.overrides;
+      if(d.insumos) insumos=d.insumos;
+      saveOverrides(); saveInsumos(); render();
+      if(currentTab==='insumos') renderInsumos();
+      alert('Datos importados correctamente.');
+    } catch{ alert('Error al leer el archivo.'); }
+  };
+  r.readAsText(e.target.files[0]);
+}
+
+render();
+</script>
+</body>
+</html>
+HTMLEOF
+echo "$(wc -l < /mnt/user-data/outputs/gantt_flota_MP.html) líneas, $(wc -c < /mnt/user-data/outputs/gantt_flota_MP.html) bytes"
+Listo
